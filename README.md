@@ -1,4 +1,4 @@
-# Cross-Asset Volatility Modeling & Risk Forecasting
+# cross-asset-volatility-modeling
 
 > **Quant Finance / Risk Modeling Project**  
 > Python-based analysis of volatility clustering, conditional variance, tail risk, and crisis-period market behavior across major U.S. equities.
