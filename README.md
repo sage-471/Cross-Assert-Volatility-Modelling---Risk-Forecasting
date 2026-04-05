@@ -1,4 +1,4 @@
-# cross-asset-volatility-modeling
+# Cross-Asset-Volatility-Modeling
 
 > **Quant Finance / Risk Modeling Project**  
 > Python-based analysis of volatility clustering, conditional variance, tail risk, and crisis-period market behavior across major U.S. equities.
@@ -159,15 +159,14 @@ This project was built in **Python** using the following libraries:
 ## Project Structure
 
 ```bash
-Cross-Assert-Volatility-Modelling---Risk-Forecasting/
+Cross-Assert-Volatility-Modelling
 │
 ├── figures/
 ├── notebooks/
 ├── README.md
 └── requirements.txt
 ```
-
-> You can expand this structure later by separating reusable logic into a `src/` folder.
+.
 
 ---
 
@@ -317,18 +316,3 @@ Whether in **risk management**, **systematic investing**, **derivatives**, or **
 
 This project demonstrates the application of **data science and econometric modeling** to a real financial problem:  
 **measuring and interpreting dynamic market risk.**
-
----
-
-## Author
-
-**Alex Manjoro**  
-MS in Data Science | Aspiring Quant Analyst | CFA Level I Candidate
-
-If you’d like to connect or discuss the project, feel free to fork the repository or reach out.
-
----
-
-## License
-
-This project is open-source and available under the **MIT License**.
