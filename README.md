@@ -1,234 +1,249 @@
-#   Cross-Asset Volatility Modeling & Risk Forecasting  
-## Conditional Risk, Tail Behavior & Crisis Dynamics (2000–2024)
+# Cross-Asset Volatility Modeling & Risk Forecasting
+
+> **Quant Finance / Risk Modeling Project**  
+> Python-based analysis of volatility clustering, conditional variance, tail risk, and crisis-period market behavior across major U.S. equities.
 
 ---
 
-## Aim
+## Overview
 
-This project analyzes the time-varying volatility and tail risk characteristics of a diversified portfolio of U.S. blue-chip equities:
+This project investigates the behavior of **financial market volatility** across multiple sectors using **daily equity return data** from **2000 to 2024**. The analysis focuses on how risk evolves over time, how volatility behaves during market stress periods, and how conditional variance models can be used to better understand and forecast financial risk.
 
-- **JPM** (Financials)  
-- **XOM** (Energy)  
-- **GE** (Industrials)  
-- **KO** (Consumer Staples)  
-- **IBM** (Technology)  
-- **DIS** (Consumer Discretionary)  
+Rather than treating volatility as constant, this project models it as a **dynamic and persistent process**, reflecting one of the most important stylized facts in financial time series: **volatility clustering**.
 
-The study focuses on:
-
-- Stylized facts of financial returns  
-- Higher-order moments (skewness & kurtosis)  
-- Volatility clustering  
-- GARCH-based conditional volatility modeling  
-- Crisis-period behavior (2008 Financial Crisis & 2020 COVID-19)  
-- Portfolio-level risk forecasting  
+The study combines **descriptive statistics**, **rolling risk metrics**, **GARCH-family models**, and **portfolio-level tail risk measures** to evaluate the behavior of returns and volatility across a diversified set of large-cap U.S. equities.
 
 ---
 
-# 1️⃣ Data & Stylized Facts
+## Objective
 
-## Daily Log Returns
+The primary goal of this project is to answer the following question:
 
-<img width="993" height="441" alt="image" src="https://github.com/user-attachments/assets/8cbe5668-9136-4c83-8bd9-d56964d3e1e2" />
+> **How does volatility behave across major equity sectors, and to what extent can time-series volatility models capture and forecast conditional market risk?**
 
+This project was designed to bridge **data science**, **econometrics**, and **quantitative finance**, with practical relevance to:
 
-### Interpretation
-
-Across all six equities:
-
-- Returns fluctuate around zero → consistent with **weak-form efficiency**
-- No persistent drift in daily returns
-- Clear bursts of high volatility in:
-  - 2008 (Global Financial Crisis)
-  - 2020 (COVID-19 shock)
-
-### Stock-Level Observations
-
-- **JPM**: Large return swings during 2008 reflect financial sector fragility.
-- **GE**: Pronounced volatility during crisis periods, consistent with cyclical industrial exposure.
-- **XOM**: Elevated volatility during oil shocks and COVID demand collapse.
-- **DIS**: COVID shock particularly visible due to shutdown of theme parks and media disruption.
-- **KO**: Comparatively stable; smaller magnitude shocks.
-- **IBM**: Moderate volatility, less extreme than financials or energy.
-
-### Stylized Fact Confirmed:
-Returns are approximately stationary in mean but exhibit **time-varying variance**.
+- **Risk management**
+- **Portfolio construction**
+- **Volatility forecasting**
+- **Stress testing**
+- **Market regime analysis**
 
 ---
 
-## Descriptive Statistics
+## Asset Universe
 
-<img width="657" height="307" alt="Descriptive statistics" src="https://github.com/user-attachments/assets/3f13009d-bbee-4d84-aef7-22012550332c" />
+The analysis uses daily adjusted closing prices for the following U.S. equities:
 
+| Ticker | Company | Sector |
+|--------|---------|--------|
+| JPM | JPMorgan Chase & Co. | Financials |
+| XOM | Exxon Mobil Corp. | Energy |
+| GE | General Electric Co. | Industrials |
+| KO | Coca-Cola Co. | Consumer Staples |
+| IBM | IBM | Technology |
+| DIS | Walt Disney Co. | Consumer Discretionary |
 
-| Asset | Key Insight |
-|--------|------------|
-| JPM | High volatility, negative skew |
-| XOM | Cyclical volatility tied to energy markets |
-| GE  | Elevated variance, crisis-sensitive |
-| KO  | Lower volatility, defensive |
-| IBM | Moderate risk profile |
-| DIS | Significant downside tail risk |
-
-### Interpretation
-
-- Mean returns ≈ 0 → Daily returns are small relative to volatility.
-- Standard deviations vary significantly across sectors.
-- All assets show **excess kurtosis (>3)** → Heavy-tailed distributions.
-
-This confirms that **normal distribution assumptions underestimate extreme events.**
+This cross-sector structure allows for comparison of how volatility behaves across industries under both normal and stressed market conditions.
 
 ---
 
-# 2️⃣ Higher-Order Moments
+## Time Period
 
-## Skewness of Log Returns
+**Sample Period:** 2000 – 2024
 
-<img width="989" height="590" alt="skewness of log returns" src="https://github.com/user-attachments/assets/3aa31fd8-24b3-44f0-a302-d58572a24b14" />
+This time horizon captures several major market regimes and stress events, including:
 
+- **Dot-com aftermath**
+- **2008 Global Financial Crisis**
+- **COVID-19 market shock**
+- **Post-pandemic tightening / inflation regime**
 
-### Interpretation by Stock
-
-- **JPM, GE, DIS** → Negative skewness  
-  - Greater probability of extreme downside shocks.
-  - Financial and cyclical sectors show asymmetric risk.
-
-- **KO** → Near symmetric distribution  
-  - Defensive consumption reduces tail imbalance.
-
-Negative skew implies that bad days are more extreme than good days.  
-This matters for risk managers more than it does for optimists.
+These periods provide a useful backdrop for examining how volatility reacts to systemic shocks and whether those effects persist differently across sectors.
 
 ---
 
-## Kurtosis of Log Returns
+## Methodology
 
-<img width="989" height="590" alt="kurtosis of log returns" src="https://github.com/user-attachments/assets/91cadeb4-0fa3-4900-8742-79fa3007f753" />
+### 1. Data Collection
+Historical daily price data was retrieved using:
 
+- `yfinance`
 
-All assets exhibit **leptokurtosis (fat tails).**
+### 2. Return Construction
+Daily **log returns** were calculated as:
 
-### What “Fat Tails” Mean
+```math
+r_t = \ln\left(\frac{P_t}{P_{t-1}}\right)
+```
 
-- Extreme events occur more frequently than Gaussian theory predicts.
-- Risk models assuming normality severely underestimate tail losses.
-- Justifies use of **Student-t innovations in GARCH models**.
+Using log returns makes the series more appropriate for statistical modeling and aligns with standard practice in quantitative finance.
 
-### Sector Interpretation
+### 3. Exploratory Data Analysis
+Each return series was evaluated using:
 
-- **Financials (JPM)** and **Industrials (GE)** show the heaviest tails.
-- **Energy (XOM)** reflects commodity-driven shock sensitivity.
-- **KO** shows relatively thinner tails but still above Gaussian baseline.
+- Mean return
+- Standard deviation
+- Skewness
+- Kurtosis
+- Return distribution visualizations
 
-Markets do not whisper risk — they occasionally shout it.
+This helps identify key stylized facts such as:
 
----
+- **Fat tails**
+- **Asymmetry**
+- **Non-normality**
+- **Extreme market moves**
 
-# 3️⃣ Rolling Volatility (60-Day)
+### 4. Rolling Volatility Analysis
+To visualize how risk evolves over time, the project computes **60-day rolling volatility** for each asset.
 
-<img width="990" height="441" alt="60 day rolling volatility" src="https://github.com/user-attachments/assets/dc8ec9cc-452f-4738-a1f1-cf74ba1cb4a0" />
+This allows us to observe:
 
+- Volatility clustering
+- Crisis-driven spikes
+- Regime shifts
+- Persistence in market uncertainty
 
-### Observations
+### 5. Conditional Volatility Modeling
+The project fits **Student-t GARCH(1,1)** models to estimate time-varying conditional variance:
 
-- Major spikes during:
-  - 2008 Financial Crisis
-  - March 2020 COVID crash
-- Volatility clustering clearly visible.
+```math
+\sigma_t^2 = \omega + \alpha \varepsilon_{t-1}^2 + \beta \sigma_{t-1}^2
+```
 
-### Stock-Level Dynamics
+These models are used to evaluate whether volatility shocks are:
 
-- **JPM**: Extreme spike in 2008 → banking system instability.
-- **GE**: Sharp surge in both crises → cyclical sensitivity.
-- **XOM**: Volatility surge during oil price collapse (2020).
-- **DIS**: COVID volatility due to operational shutdown.
-- **KO**: Smallest relative volatility spikes → defensive nature.
-- **IBM**: Moderate clustering but less severe than financials.
+- **Persistent**
+- **Mean-reverting**
+- **Responsive to new information**
 
-Rolling volatility confirms that risk is **time-dependent**.
+### 6. Portfolio Risk Layer
+The project extends beyond single-asset volatility and includes:
 
----
-
-# 4️⃣ GARCH(1,1) Conditional Volatility
-
-Models estimated using Student-t GARCH(1,1).
-
----
-
-## JPM Conditional Volatility
-<img width="977" height="451" alt="JPM conditional volatility with crisis events" src="https://github.com/user-attachments/assets/014b387a-f7a2-4d52-9972-a6d5095d2f60" />
-
-
-### Interpretation
-
-- Massive spike in 2008.
-- High persistence (α + β close to 1).
-- Volatility remains elevated long after initial shock.
-
-Financial sector volatility exhibits strong memory.
+- **1-day 99% Value at Risk (VaR)**
+- **Expected Shortfall (ES)**
+- **Dynamic optimized portfolio weights**
+- **Cross-asset volatility spillover interpretation**
 
 ---
 
-## GE Conditional Volatility
+## Key Questions Explored
 
-<img width="968" height="451" alt="GE Conditional volatilty with crisis events" src="https://github.com/user-attachments/assets/8de8bbac-a6a3-45ba-a3e7-aeb28af3b4b7" />
+This project investigates the following:
 
-
-### Interpretation
-
-- Significant crisis amplification.
-- Industrial cyclicality reflected in conditional variance.
-- Elevated response to macroeconomic contractions.
-
-GE behaves like a macro beta amplifier.
+- Do different sectors exhibit different volatility dynamics?
+- Which equities experience the most persistent volatility shocks?
+- How do crisis periods alter the structure of market risk?
+- Can conditional volatility models capture the changing nature of financial uncertainty?
+- What do rolling and model-based volatility estimates reveal about market regimes?
+- How does sector composition affect portfolio-level tail risk?
 
 ---
 
-## KO Conditional Volatility
+## Tools & Libraries
 
-<img width="968" height="451" alt="KO Conditional volatility with crisis events" src="https://github.com/user-attachments/assets/dac831c5-08a8-4fde-a997-4e96da1a640d" />
+This project was built in **Python** using the following libraries:
 
-
-### Interpretation
-
-- Smaller volatility spikes.
-- Faster reversion to baseline variance.
-- Consumer staples show defensive volatility structure.
-
-KO acts as portfolio stabilizer.
-
----
-
-# 5️⃣ Cross-Asset Volatility Spillovers
-
-Lagged spillover matrix (squared residuals):
-<img width="567" height="146" alt="image" src="https://github.com/user-attachments/assets/062096e8-45ab-438d-8240-f908dbe429e4" />
-
-
-- Financial and energy sectors transmit volatility.
-- Defensive sectors absorb more than they transmit.
-
-This confirms systemic interconnectedness across sectors.
+- `pandas`
+- `numpy`
+- `matplotlib`
+- `scipy`
+- `yfinance`
+- `arch`
+- `cvxpy`
+- `jupyter`
 
 ---
 
-# 6️⃣ Portfolio Risk Forecasting
+## Project Structure
 
-## 1-Day 99% Risk Measures
+```bash
+Cross-Assert-Volatility-Modelling---Risk-Forecasting/
+│
+├── figures/
+├── notebooks/
+├── README.md
+└── requirements.txt
+```
 
-- **VaR:** -1.53%  
-- **Expected Shortfall:** -1.76%
-
-### Interpretation
-
-- 1% probability of losing ≥ 1.53% in a day.
-- If breached, average loss ≈ 1.76%.
-
-Expected Shortfall exceeding VaR confirms fat-tail exposure.
+> You can expand this structure later by separating reusable logic into a `src/` folder.
 
 ---
 
-## Dynamic Optimized Portfolio Weights
+## Selected Results
+
+### Daily Log Returns
+Daily return series fluctuate around zero, but volatility is clearly **time-varying**, with visible turbulence during the **2008 Global Financial Crisis** and the **2020 COVID-19 shock**.
+
+<img width="993" height="441" alt="Daily Log Returns" src="https://github.com/user-attachments/assets/8cbe5668-9136-4c83-8bd9-d56964d3e1e2" />
+
+### Descriptive Statistics
+Higher-order moments reveal that the return distributions are **non-Gaussian**, with evidence of **negative skewness** and **excess kurtosis** across several names.
+
+<img width="657" height="307" alt="Descriptive Statistics" src="https://github.com/user-attachments/assets/3f13009d-bbee-4d84-aef7-22012550332c" />
+
+### Skewness of Log Returns
+Negative skewness in names such as **JPM**, **GE**, and **DIS** suggests that downside shocks are more extreme than upside moves.
+
+<img width="989" height="590" alt="Skewness of Log Returns" src="https://github.com/user-attachments/assets/3aa31fd8-24b3-44f0-a302-d58572a24b14" />
+
+### Kurtosis of Log Returns
+All assets exhibit **fat tails**, meaning extreme return events occur more frequently than predicted under a normal distribution.
+
+<img width="989" height="590" alt="Kurtosis of Log Returns" src="https://github.com/user-attachments/assets/91cadeb4-0fa3-4900-8742-79fa3007f753" />
+
+### 60-Day Rolling Volatility
+Rolling volatility highlights clear **volatility clustering**, especially during major crisis periods.
+
+<img width="990" height="441" alt="60 Day Rolling Volatility" src="https://github.com/user-attachments/assets/dc8ec9cc-452f-4738-a1f1-cf74ba1cb4a0" />
+
+### GARCH Conditional Volatility
+#### JPM Conditional Volatility
+<img width="977" height="451" alt="JPM Conditional Volatility" src="https://github.com/user-attachments/assets/014b387a-f7a2-4d52-9972-a6d5095d2f60" />
+
+#### GE Conditional Volatility
+<img width="968" height="451" alt="GE Conditional Volatility" src="https://github.com/user-attachments/assets/8de8bbac-a6a3-45ba-a3e7-aeb28af3b4b7" />
+
+#### KO Conditional Volatility
+<img width="968" height="451" alt="KO Conditional Volatility" src="https://github.com/user-attachments/assets/dac831c5-08a8-4fde-a997-4e96da1a640d" />
+
+### Cross-Asset Volatility Spillovers
+The spillover matrix suggests that **financials** and **energy** are stronger transmitters of volatility than more defensive sectors.
+
+<img width="567" height="146" alt="Volatility Spillovers" src="https://github.com/user-attachments/assets/062096e8-45ab-438d-8240-f908dbe429e4" />
+
+---
+
+## Key Findings
+
+### 1. Volatility is clearly time-varying
+Across all assets, volatility is **not constant**. Instead, it appears in bursts, with high-volatility periods followed by further high-volatility periods.
+
+This confirms the presence of **volatility clustering**, one of the most important stylized facts in financial markets.
+
+### 2. Crisis periods produce sharp and persistent volatility spikes
+Periods such as **2008** and **2020** show pronounced increases in both rolling and model-implied volatility, indicating strong market-wide stress transmission.
+
+### 3. Sector behavior differs meaningfully
+Certain sectors appear more sensitive to macroeconomic and systemic shocks than others, suggesting that sector composition materially affects portfolio risk exposure.
+
+### 4. GARCH models capture conditional risk more realistically than static measures
+Compared with unconditional standard deviation, conditional variance models better reflect the changing nature of market risk over time.
+
+### 5. Portfolio tail risk remains material even under diversification
+The estimated **VaR** and **Expected Shortfall** indicate that diversification reduces idiosyncratic exposure, but systemic drawdown risk remains meaningful during crisis regimes.
+
+---
+
+## Portfolio Risk Snapshot
+
+### 1-Day 99% Risk Measures
+
+- **VaR:** `-1.53%`
+- **Expected Shortfall:** `-1.76%`
+
+### Dynamic Optimized Portfolio Weights
 
 | Asset | Weight |
 |--------|--------|
@@ -241,64 +256,79 @@ Expected Shortfall exceeding VaR confirms fat-tail exposure.
 
 ### Interpretation
 
-- Largest allocation to **KO** → defensive stability.
-- Reduced exposure to GE → high volatility.
-- Balanced exposure to cyclical and stable sectors.
-
-Dynamic covariance allocation favors **risk-adjusted resilience**.
+- **KO** receives the largest allocation due to its relatively defensive volatility profile.
+- More cyclical names receive lower weight, improving **risk-adjusted resilience**.
+- Diversification helps, but does not fully remove exposure to **systemic shocks**.
 
 ---
 
-# 7️⃣ Cumulative Portfolio Returns
+## Financial Interpretation
 
-Cumulative returns show:
+From a quantitative finance perspective, the findings of this project reinforce several important ideas:
 
-- Long-term positive drift.
-- Severe drawdowns in 2008 & 2020.
-- Recovery consistent with equity risk premium.
+- **Market risk is regime-dependent**
+- **Volatility is persistent**
+- **Risk is not evenly distributed across time**
+- **Sector diversification does not eliminate crisis sensitivity**
+- **Tail-aware risk measures are more realistic than Gaussian assumptions**
 
-Portfolio diversification reduces catastrophic loss but does not eliminate systemic risk.
+These dynamics are highly relevant in practical settings such as:
 
----
-
-# 🔍 Key Investor Takeaways
-
-- Returns are non-Gaussian and fat-tailed.
-- Volatility clusters and persists.
-- Financials amplify systemic shocks.
-- Energy reflects commodity cycle risk.
-- Consumer staples provide defensive ballast.
-- Expected Shortfall is superior to VaR for tail risk.
-- Dynamic volatility modeling improves risk forecasting.
+- Portfolio risk monitoring
+- Position sizing
+- Volatility forecasting
+- VaR / Expected Shortfall estimation
+- Trading strategy risk overlays
 
 ---
 
-# 🛠 Tech Stack
+## Limitations
 
-- Python  
-- Pandas  
-- NumPy  
-- yfinance  
-- Matplotlib / Seaborn  
-- arch (GARCH modeling)  
-- SciPy  
+While this project provides useful insight into volatility dynamics, several limitations should be noted:
+
+- The analysis is based on **daily close-to-close returns**, which do not capture intraday volatility behavior.
+- The models are primarily **univariate**, meaning they do not explicitly model cross-asset spillovers in a full multivariate framework.
+- Structural breaks and regime shifts may affect parameter stability across long sample periods.
+- Equity-only analysis limits broader generalization to multi-asset portfolios.
+
+These limitations also create opportunities for future expansion.
 
 ---
 
-# 📚 Conclusion
-# Conclusion
+## Future Improvements
 
-This study examined the dynamic risk characteristics of a diversified portfolio of U.S. blue-chip equities—JPM (Financials), XOM (Energy), GE (Industrials), KO (Consumer Staples), IBM (Technology), and DIS (Consumer Discretionary)—over the 2000–2024 period. The objective was to evaluate the statistical properties of returns, model conditional volatility, and assess portfolio-level tail risk during both stable and crisis regimes.
+Potential next steps include:
 
-The empirical results confirm several well-documented stylized facts of financial time series. First, daily log returns are approximately stationary in mean but exhibit time-varying variance. Second, return distributions are non-normal, with statistically significant excess kurtosis and, in several cases, negative skewness. These characteristics indicate fat-tailed and asymmetric distributions, implying that extreme downside events occur more frequently than predicted by a Gaussian framework. From a risk management perspective, this finding invalidates reliance on traditional mean-variance models that assume normality.
+- Implementing **EGARCH** and **GJR-GARCH** models
+- Forecasting **1-day ahead volatility**
+- Comparing **realized vs forecasted volatility**
+- Adding **backtesting for VaR breaches**
+- Extending the analysis to **portfolio-level conditional covariance modeling**
+- Incorporating **macro variables** or **market indices**
+- Modeling **cross-asset volatility spillovers** with richer multivariate methods
 
-Volatility clustering is clearly observable across all assets, particularly during the 2008 Global Financial Crisis and the 2020 COVID-19 shock. Financials (JPM) and cyclicals (GE, DIS) display pronounced volatility amplification during systemic stress, reflecting their sensitivity to macroeconomic contraction and liquidity shocks. Energy (XOM) volatility is strongly influenced by commodity price dynamics and demand disruptions. In contrast, Consumer Staples (KO) demonstrates comparatively lower volatility spikes and faster mean reversion, reinforcing its defensive profile within diversified portfolios.
+---
 
-The GARCH(1,1) framework with Student-t innovations effectively captures the persistence and clustering of volatility. The estimated parameters suggest high volatility persistence (α + β close to unity), consistent with long memory in conditional variance. The use of heavy-tailed error distributions materially improves model fit and more accurately reflects empirical return behavior. These results support the application of conditional volatility models for forward-looking risk estimation and stress analysis.
+## Why This Project Matters
 
-At the portfolio level, Value-at-Risk (VaR) and Expected Shortfall (ES) estimates confirm meaningful exposure to tail risk. The higher magnitude of Expected Shortfall relative to VaR highlights the severity of losses conditional on breach events, underscoring the importance of coherent risk measures in portfolio oversight. Dynamic covariance optimization tilts allocations toward lower-volatility assets—most notably KO—while reducing exposure to higher-beta cyclicals. This allocation structure enhances risk-adjusted stability without eliminating systematic drawdown exposure.
+Volatility sits at the center of modern finance.
 
-Cross-asset spillover analysis indicates that financial and energy sectors act as primary transmitters of volatility, reinforcing the interconnected nature of modern capital markets. Sector diversification mitigates idiosyncratic risk but does not fully insulate portfolios from systemic shocks.
+Whether in **risk management**, **systematic investing**, **derivatives**, or **quantitative research**, understanding how volatility behaves is essential to understanding how markets behave.
 
-Overall, the findings demonstrate that equity markets are characterized by persistent, regime-dependent volatility and heavy-tailed return distributions. Effective portfolio construction and risk management therefore require dynamic modeling frameworks that incorporate time-varying covariance structures and non-Gaussian innovations. Investors who account for these structural features are better positioned to manage drawdowns, allocate capital efficiently, and maintain resilience across economic cycles.
+This project demonstrates the application of **data science and econometric modeling** to a real financial problem:  
+**measuring and interpreting dynamic market risk.**
 
+---
+
+## Author
+
+**Alex Manjoro**  
+MS in Data Science | Aspiring Quant Analyst | CFA Level I Candidate
+
+If you’d like to connect or discuss the project, feel free to fork the repository or reach out.
+
+---
+
+## License
+
+This project is open-source and available under the **MIT License**.
